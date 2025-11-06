@@ -40,13 +40,14 @@ public class SimplexNoiseGenerator : ProceduralGenerationMethod
 
     private void OnValidate()
     {
-        // enforce ordering sand <= water <= grass <= rock (correct values if user moves sliders)
-        float s = sandHeight;
-        float w = Mathf.Max(waterHeight, s);
-        float g = Mathf.Max(grassHeight, w);
-        float r = Mathf.Max(rockHeight, g);
-        sandHeight = Mathf.Clamp(s, -1f, 1f);
+        // enforce ordering: water <= sand <= grass <= rock (correct values if user moves sliders)
+        float w = waterHeight;
+        float s = Mathf.Max(sandHeight, w); // sand must be >= water
+        float g = Mathf.Max(grassHeight, s); // grass must be >= sand
+        float r = Mathf.Max(rockHeight, g);  // rock must be >= grass
+
         waterHeight = Mathf.Clamp(w, -1f, 1f);
+        sandHeight = Mathf.Clamp(s, -1f, 1f);
         grassHeight = Mathf.Clamp(g, -1f, 1f);
         rockHeight = Mathf.Clamp(r, -1f, 1f);
 
