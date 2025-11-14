@@ -86,8 +86,10 @@ public class MyCustomMethod : ProceduralGenerationMethod
 }
 ```
 
-3. Crée un asset dans Unity  
-4. Ajoute-le au pipeline de génération  
+3. Crée un asset dans Unity :
+Create → Procedural Generation → MyCustomMethod
+
+4. Dans la scène, ajouter/choisir un ProceduralGridGenerator et sélectionner votre méthode.
 
 ---
 
