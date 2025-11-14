@@ -1,106 +1,191 @@
 # ProceduralGenerationTools
-# ProceduralGenerationTools
 
-Résumé
-----
-Outils et méthodes pour génération procédurale sur grille dans Unity. Le projet fournit :
-- une implémentation de grille (`Grid` / `Cell`),
-- une base réutilisable pour les méthodes de génération (`ProceduralGenerationMethod`),
-- plusieurs generators exemples : `SimplexNoiseGenerator`, `SimpleRoomPlacement`,
-- utilitaires : `RandomService`, `ScriptableObjectDatabase`.
+![Unity](https://img.shields.io/badge/Unity-2022.3+-black?logo=unity)
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![C#](https://img.shields.io/badge/C%23-8.0-blue)
 
-Structure importante
-----
-- `Assets/Components/ProceduralGeneration/...` : dossiers contenant les méthodes de génération et exemples.
-- `ProceduralGridGenerator` : composant MonoBehaviour qui orchestre la création de la `Grid`, injecte les dépendances (RandomService, Grid) et exécute la méthode de génération (ScriptableObject).
+Outils modulaires et extensibles pour créer des systèmes de **génération procédurale sur grille** dans Unity.  
+Pensé pour être simple, flexible, maintenable et compatible avec tout type d’architecture.
 
-Concepts clés
-----
-- Grid  
-  - Représente la grille logique. Propriétés importantes : `Width`, `Lenght`, `CellSize`, `OriginPosition`, `Cells`.  
-  - Méthodes utiles :  
-    - `TryGetCellByCoordinates(int x, int y, out Cell)` — obtenir une cellule par coordonnées.  
-    - `TryGetCellByPosition(Vector3 pos, out Cell)` — obtenir cellule depuis une position monde.  
-    - `GetWorldPosition(...)` et `GetCellsInCircle(...)`.  
-  - `DrawGridDebug()` affiche la grille si activée.
+---
 
-- Cell  
-  - Représente une case de la grille. Propriétés : `Coordinates` (Vector2Int), `ContainObject` (bool), `GridObject` (données), `View` (controller).  
-  - Méthodes : `AddObject(GridObjectController)`, `ClearGridObject()`, `GetCenterPosition(Vector3 origin)`.
+## ✨ Caractéristiques principales
 
-- ProceduralGenerationMethod (base)  
-  - ScriptableObject servant de contrat pour un generator. Champs injectés à l'exécution :
-    - `ProceduralGridGenerator GridGenerator` (injection),
-    - `RandomService RandomService`,
-    - `Grid Grid`.  
-  - Constantes de noms de tuiles disponibles :
-    - `ROOM_TILE_NAME`, `CORRIDOR_TILE_NAME`, `GRASS_TILE_NAME`, `WATER_TILE_NAME`, `ROCK_TILE_NAME`, `SAND_TILE_NAME`.
-  - Helpers fournis :
-    - `CanPlaceRoom(RectInt room, int spacing)` — vérifie la pose d'une salle,
-    - `AddTileToCell(Cell cell, string tileName, bool overrideExistingObjects)` — ajoute/replace une tuile,
-    - `SetCellView(Cell cell, string tileName, bool overrideExistingObjects)` — met à jour la vue.
-  - Contrat : implémenter `protected override UniTask ApplyGeneration(CancellationToken cancellationToken)`.
-  - Paramètre contrôlant la durée : `_maxSteps` et la génération peut être annulée via le `CancellationToken`.
+- **Système de grille flexible** : `Grid`, `Cell`, `GridObject`
+- **Méthodes de génération extensibles** basées sur `ProceduralGenerationMethod`
+- **Génération asynchrone** (support `CancellationToken`)
+- **Visualisation temps-réel** des étapes
+- **Base solide pour créer vos propres algorithmes** : bruit, donjons, automates cellulaires, etc.
+- **Aucune dépendance externe obligatoire**
 
-- ProceduralGridGenerator  
-  - Composant qui contient un champ `_generationMethod` (ScriptableObject).
-  - Injecte les dépendances et appelle `Generate()` sur la méthode.  
-  - Paramètre d'éditeur important : `_stepDelay` (exposé à runtime via `StepDelay`) pour visualiser pas-à-pas.
+---
 
-- RandomService  
-  - Fournit génération aléatoire contrôlée par `Seed`. Méthodes : `Range`, `Chance`, `Pick`.
+## 📦 Technologies utilisées (inspirations)
 
-Générateurs présents (explication)
-----
-- `SimplexNoiseGenerator`  
-  - Utilise `FastNoiseLite` pour produire du bruit 2D.  
-  - Paramètres exposés : `noiseType`, `frequency`, `amplitude`, fractal (`octaves`, `lacunarity`, `persistence`), `offset`.  
-  - Mappe l'échantillon bruit (après amplitude) vers des seuils de hauteur (`waterHeight`, `sandHeight`, `grassHeight`, `rockHeight`) pour choisir la tuile à placer avec `AddTileToCell`.  
-  - Option `visualizeDuringGeneration` pour observer génération en temps réel.  
-  - Astuce : les hauteurs doivent respecter `water <= sand <= grass <= rock`. Si l'ordre est incorrect, le rendu de `Sand` peut disparaître (voir `OnValidate()` dans le fichier).
+```
+UniTask
+Zenject
+R3
+PrimeTween
+```
 
-- `SimpleRoomPlacement`  
-  - Place jusqu'à `_maxRooms` salles rectangulaires aléatoires avec `CanPlaceRoom` pour vérifier collisions/espacement.  
-  - Pour chaque salle placée, calcule le centre (`GetRoomCenter`) et la stocke.  
-  - Connecte chaque salle à la plus proche via `PlaceCorridor`.  
-  - Remplissage final du sol via `BuildGround()` qui obtient la template `Grass` depuis `ScriptableObjectDatabase` et instancie des `GridObject` sur chaque cellule.
+---
 
-Comment ajouter une nouvelle architecture / nouveau generator
-----
-1. Crée une nouvelle classe héritant de `ProceduralGenerationMethod` (ScriptableObject). Ajoute `CreateAssetMenu` pour la créer facilement depuis l'éditeur.  
-2. Implémente `protected override async UniTask ApplyGeneration(CancellationToken cancellationToken)`.  
-   - Utilise `Grid`, `GridGenerator`, `RandomService`.  
-   - Respecte `cancellationToken.ThrowIfCancellationRequested()` fréquemment.  
-   - Pour modifier la grille, utilise les helpers fournis (`AddTileToCell`, `CanPlaceRoom`, `SetCellView`).  
-   - Pour visualiser étape par étape, `await UniTask.Delay(GridGenerator.StepDelay, cancellationToken: cancellationToken)`.  
-3. Crée l'asset (clic droit → Create → ton menu).  
-4. Assigne l'asset au champ `_generationMethod` du `ProceduralGridGenerator` dans la scène.  
-5. Dans l'inspecteur de `ProceduralGridGenerator`, règle `StepDelay`, `Seed`, et exécute `Generate()` depuis l'UI/éditeur ou en Play.
+## 📥 Installation
 
-Exemple minimal de template
+Clonez ce dépôt :
 
+```bash
+git clone https://github.com/Tim4270/ProceduralGenerationTools.git
+```
 
-Conseils de debug & pièges fréquents
-----
-- Les noms de tuiles sont sensibles (exact match). Vérifie `ScriptableObjectDatabase` pour les templates existants (`"Grass"`, `"Sand"`, etc.).  
-- Respecte l'ordre des hauteurs (pour `SimplexNoiseGenerator`) : `water <= sand <= grass <= rock`.  
-- Toujours vérifier `Grid.TryGetCellByCoordinates(...)` avant d'accéder à une cellule.  
-- Utilise `cancellationToken` pour permettre l'annulation propre.  
-- Si tu ne vois rien à l'écran : vérifier `ProceduralGridGenerator` (est‑il assigné à la scène ? _generationMethod_ est-il set ? `StepDelay` raisonnable ?).
+Puis ouvrez le projet dans **Unity 2022.3+**.
 
-Utilisation rapide (Unity)
-----
-1. Ouvrir la scène contenant `ProceduralGridGenerator` ou ajouter le composant.  
-2. Créer un asset de la méthode (clic droit → Create → Procedural Generation Method → …).  
-3. Assigner l'asset au champ `_generationMethod` du `ProceduralGridGenerator`.  
-4. Régler `Seed` et `StepDelay`.  
-5. Appuyer sur Generate (ou lancer en Play si la UI l'exécute).
+---
 
-Contribution
-----
-- Fork → nouvelle feature / bugfix → Pull Request.  
-- Ouvrir une issue pour discuter d'un changement d'API (ex : nouveaux helpers dans `ProceduralGenerationMethod`).
+## 🚀 Exemple rapide
 
-Contact rapide
-----
-- Pour un bug reproductible, préciser : scène utilisée, valeurs du generator, capture d'écran de la grille, logs console.
+### 1. Créer une grille
+
+```csharp
+var grid = new Grid(width: 32, length: 32, cellSize: 1f);
+```
+
+### 2. Lancer une génération
+
+```csharp
+var method = ScriptableObject.CreateInstance<SimplexNoiseGenerator>();
+await method.GenerateAsync(grid);
+```
+
+### 3. Visualiser  
+Ajoutez un composant `ProceduralGridGenerator` dans la scène et assignez votre generator.
+
+---
+
+## 🧱 Architecture du projet
+
+```
+ProceduralGenerationTools
+ ├─ Grid/
+ │   ├─ Grid
+ │   ├─ Cell
+ │   └─ GridObject
+ ├─ GenerationMethods/
+ │   ├─ ProceduralGenerationMethod (abstract)
+ │   ├─ SimplexNoiseGenerator
+ │   └─ SimpleRoomPlacement
+ ├─ Services/
+ │   └─ RandomService
+ ├─ Visual/
+ │   └─ ProceduralGridGenerator
+ └─ ScriptableObjectDatabase/
+```
+
+---
+
+## 🧩 Créer votre propre générateur
+
+1. Créez une classe dérivée :
+
+```csharp
+public class MyGenerator : ProceduralGenerationMethod
+{
+    protected override async UniTask ApplyGeneration(CancellationToken token)
+    {
+        foreach (var cell in Grid.Cells)
+        {
+            token.ThrowIfCancellationRequested();
+            cell.SetCellView("Grass");
+            await DelayStep(token); // pour visualisation
+        }
+    }
+}
+```
+
+2. Créez l’asset via :  
+**Create → Procedural Generation → MyGenerator**
+
+3. Assignez-le dans `ProceduralGridGenerator`.
+
+---
+
+## 🔍 Méthodes existantes
+
+### **SimplexNoiseGenerator**
+- Génère une heightmap
+- Mapping : eau, sable, herbe, roche
+- Basé sur `FastNoiseLite`
+
+### **SimpleRoomPlacement**
+- Placement aléatoire de salles
+- Création de corridors
+- Génération finale du sol
+
+---
+
+## 🔧 Paramètres disponibles
+
+| Paramètre        | Description |
+|------------------|-------------|
+| **Seed**         | Graine aléatoire utilisée pour la génération |
+| **StepDelay**    | Délai visuel entre les étapes |
+| **GridSize**     | Dimensions de la grille |
+| **TileDatabase** | Base des tuiles affichables |
+
+---
+
+## 📚 API (Résumé)
+
+### `Grid`
+```csharp
+public int Width;
+public int Length;
+public float CellSize;
+public Cell[,] Cells;
+```
+
+### `Cell`
+```csharp
+public Vector2Int Coordinates;
+public bool ContainObject;
+public GridObject GridObject;
+public void SetCellView(string id);
+```
+
+### `ProceduralGenerationMethod`
+```csharp
+protected abstract UniTask ApplyGeneration(CancellationToken token);
+protected UniTask DelayStep(CancellationToken token);
+```
+
+---
+
+## 🐛 Débogage
+
+- Assurez-vous que `ProceduralGridGenerator` est présent dans la scène  
+- Assurez-vous qu’une méthode est assignée  
+- Vérifiez les IDs des tuiles dans `ScriptableObjectDatabase`  
+- Un `StepDelay` trop bas peut rendre la visualisation difficile  
+
+---
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues !
+
+1. Forkez ce dépôt  
+2. Créez une branche : `feature/ma-feature`  
+3. Ouvrez une Pull Request  
+
+---
+
+## 📄 Licence
+
+MIT — libre d’utilisation et de modification.
+
+---
+
+## 👤 Auteur
+
+**Tim4270**
