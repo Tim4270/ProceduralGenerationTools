@@ -1,191 +1,137 @@
 # ProceduralGenerationTools
 
-![Unity](https://img.shields.io/badge/Unity-2022.3+-black?logo=unity)
-![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
-![C#](https://img.shields.io/badge/C%23-8.0-blue)
-
-Outils modulaires et extensibles pour créer des systèmes de **génération procédurale sur grille** dans Unity.  
-Pensé pour être simple, flexible, maintenable et compatible avec tout type d’architecture.
-
----
-
-## ✨ Caractéristiques principales
-
-- **Système de grille flexible** : `Grid`, `Cell`, `GridObject`
-- **Méthodes de génération extensibles** basées sur `ProceduralGenerationMethod`
-- **Génération asynchrone** (support `CancellationToken`)
-- **Visualisation temps-réel** des étapes
-- **Base solide pour créer vos propres algorithmes** : bruit, donjons, automates cellulaires, etc.
-- **Aucune dépendance externe obligatoire**
-
----
-
-## 📦 Technologies utilisées (inspirations)
+Outils modulaires pour créer des systèmes de **génération procédurale** dans Unity.  
+Le projet repose sur une architecture flexible basée sur une **Grid**, des **Cell**, et des **méthodes de génération** interchangeables.  
+Tous les algorithmes sont situés dans :
 
 ```
-UniTask
-Zenject
-R3
-PrimeTween
+Assets/Components/ProceduralGeneration/
 ```
 
 ---
 
-## 📥 Installation
+# 🏛️ Architecture générale
 
-Clonez ce dépôt :
-
-```bash
-git clone https://github.com/Tim4270/ProceduralGenerationTools.git
-```
-
-Puis ouvrez le projet dans **Unity 2022.3+**.
+L’architecture du projet se compose de trois éléments principaux :
 
 ---
 
-## 🚀 Exemple rapide
+## 🔷 1. Grid  
+La **Grid** représente une carte rectangulaire composée de cellules.  
+Elle contient :
 
-### 1. Créer une grille
+- La largeur / hauteur de la grille  
+- Une matrice de **Cell**  
+- Des fonctions utilitaires :  
+  - `GetCell(x, y)`  
+  - `GetNeighbors(cell)`  
+  - Itération simplifiée  
+
+Tous les algorithmes manipulent directement la Grid.
+
+---
+
+## 🔹 2. Cell  
+Une **Cell** représente une case du niveau. Elle peut stocker :
+
+- un type (mur, sol, vide…)  
+- une valeur numérique (dans le cas du noise)  
+- des drapeaux ou métadonnées  
+
+Les algorithmes se basent sur ces données pour créer des structures.
+
+---
+
+## 🔶 3. ProceduralGenerationMethod  
+
+Classe abstraite utilisée comme base pour tous les algorithmes :
 
 ```csharp
-var grid = new Grid(width: 32, length: 32, cellSize: 1f);
-```
-
-### 2. Lancer une génération
-
-```csharp
-var method = ScriptableObject.CreateInstance<SimplexNoiseGenerator>();
-await method.GenerateAsync(grid);
-```
-
-### 3. Visualiser  
-Ajoutez un composant `ProceduralGridGenerator` dans la scène et assignez votre generator.
-
----
-
-## 🧱 Architecture du projet
-
-```
-ProceduralGenerationTools
- ├─ Grid/
- │   ├─ Grid
- │   ├─ Cell
- │   └─ GridObject
- ├─ GenerationMethods/
- │   ├─ ProceduralGenerationMethod (abstract)
- │   ├─ SimplexNoiseGenerator
- │   └─ SimpleRoomPlacement
- ├─ Services/
- │   └─ RandomService
- ├─ Visual/
- │   └─ ProceduralGridGenerator
- └─ ScriptableObjectDatabase/
-```
-
----
-
-## 🧩 Créer votre propre générateur
-
-1. Créez une classe dérivée :
-
-```csharp
-public class MyGenerator : ProceduralGenerationMethod
+public abstract class ProceduralGenerationMethod : ScriptableObject
 {
-    protected override async UniTask ApplyGeneration(CancellationToken token)
+    public abstract UniTask Generate(Grid grid, CancellationToken token);
+}
+```
+
+Chaque algorithme est implémenté dans un fichier séparé situé dans :
+
+```
+Components/ProceduralGeneration/Methods/
+```
+
+---
+
+# ➕ Ajouter un nouvel algorithme
+
+1. Crée un script dans :
+
+```
+Components/ProceduralGeneration/Methods/
+```
+
+2. Hérite de `ProceduralGenerationMethod` :
+
+```csharp
+[CreateAssetMenu(menuName = "Procedural Generation/MyCustomMethod")]
+public class MyCustomMethod : ProceduralGenerationMethod
+{
+    public override async UniTask Generate(Grid grid, CancellationToken token)
     {
-        foreach (var cell in Grid.Cells)
+        foreach (var cell in grid)
         {
-            token.ThrowIfCancellationRequested();
-            cell.SetCellView("Grass");
-            await DelayStep(token); // pour visualisation
+            cell.Type = CellType.Wall;
+            await UniTask.Yield(token);
         }
     }
 }
 ```
 
-2. Créez l’asset via :  
-**Create → Procedural Generation → MyGenerator**
-
-3. Assignez-le dans `ProceduralGridGenerator`.
+3. Crée un asset dans Unity  
+4. Ajoute-le au pipeline de génération  
 
 ---
 
-## 🔍 Méthodes existantes
+# 🧠 Algorithmes inclus
 
-### **SimplexNoiseGenerator**
-- Génère une heightmap
-- Mapping : eau, sable, herbe, roche
-- Basé sur `FastNoiseLite`
-
-### **SimpleRoomPlacement**
-- Placement aléatoire de salles
-- Création de corridors
-- Génération finale du sol
+## 🟦 1. Simple Room Placement
+![Simple Room Placement](simple_room.gif)
+Place des pièces rectangulaires aléatoirement sans overlap.  
+**Utilité :** donjons simples, prototypage.  
+**Limites :** pas de couloirs, layout très carré.
 
 ---
 
-## 🔧 Paramètres disponibles
-
-| Paramètre        | Description |
-|------------------|-------------|
-| **Seed**         | Graine aléatoire utilisée pour la génération |
-| **StepDelay**    | Délai visuel entre les étapes |
-| **GridSize**     | Dimensions de la grille |
-| **TileDatabase** | Base des tuiles affichables |
+## 🟧 2. BSP Dungeon
+![BSP Dungeon](BSP.gif)
+Division de la carte en zones via Binary Space Partitioning, placement de pièces et génération de couloirs.  
+**Utilité :** donjons structurés, équilibrés.  
+**Limites :** parfois trop régulier.
 
 ---
 
-## 📚 API (Résumé)
+## 🟩 3. Cellular Automata
+Automate cellulaire appliqué sur une carte aléatoire pour générer des formes organiques.  
+**Utilité :** grottes, cavernes.  
+**Limites :** zones parfois isolées.
 
-### `Grid`
-```csharp
-public int Width;
-public int Length;
-public float CellSize;
-public Cell[,] Cells;
+---
+
+## 🟫 4. Simplex Noise Generator
+Génère des valeurs continues via Simplex Noise.  
+**Utilité :** terrains, biomes, heatmaps.  
+**Limites :** ne produit pas de structures.
+
+---
+
+# 🚀 Installation
+
+```
+git clone https://github.com/Tim4270/ProceduralGenerationTools.git
 ```
 
-### `Cell`
-```csharp
-public Vector2Int Coordinates;
-public bool ContainObject;
-public GridObject GridObject;
-public void SetCellView(string id);
-```
-
-### `ProceduralGenerationMethod`
-```csharp
-protected abstract UniTask ApplyGeneration(CancellationToken token);
-protected UniTask DelayStep(CancellationToken token);
-```
+Ouvrir dans Unity **2022.3+**
 
 ---
 
-## 🐛 Débogage
-
-- Assurez-vous que `ProceduralGridGenerator` est présent dans la scène  
-- Assurez-vous qu’une méthode est assignée  
-- Vérifiez les IDs des tuiles dans `ScriptableObjectDatabase`  
-- Un `StepDelay` trop bas peut rendre la visualisation difficile  
-
----
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues !
-
-1. Forkez ce dépôt  
-2. Créez une branche : `feature/ma-feature`  
-3. Ouvrez une Pull Request  
-
----
-
-## 📄 Licence
-
-MIT — libre d’utilisation et de modification.
-
----
-
-## 👤 Auteur
-
-**Tim4270**
+# 📄 Licence
+MIT License
