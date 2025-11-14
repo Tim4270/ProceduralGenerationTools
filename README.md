@@ -10,13 +10,13 @@ Assets/Components/ProceduralGeneration/
 
 ---
 
-# 🏛️ Architecture générale
+# Architecture générale
 
 L’architecture du projet se compose de trois éléments principaux :
 
 ---
 
-## 🔷 1. Grid  
+##  1. Grid  
 La **Grid** représente une carte rectangulaire composée de cellules.  
 Elle contient :
 
@@ -31,7 +31,7 @@ Tous les algorithmes manipulent directement la Grid.
 
 ---
 
-## 🔹 2. Cell  
+##  2. Cell  
 Une **Cell** représente une case du niveau. Elle peut stocker :
 
 - un type (mur, sol, vide…)  
@@ -42,7 +42,7 @@ Les algorithmes se basent sur ces données pour créer des structures.
 
 ---
 
-## 🔶 3. ProceduralGenerationMethod  
+##  3. ProceduralGenerationMethod  
 
 Classe abstraite utilisée comme base pour tous les algorithmes :
 
@@ -61,7 +61,7 @@ Components/ProceduralGeneration/Methods/
 
 ---
 
-# ➕ Ajouter un nouvel algorithme
+#  Ajouter un nouvel algorithme
 
 1. Crée un script dans :
 
@@ -91,9 +91,9 @@ public class MyCustomMethod : ProceduralGenerationMethod
 
 ---
 
-# 🧠 Algorithmes inclus
+#  Algorithmes inclus
 
-## 🟦 1. Simple Room Placement
+##  1. Simple Room Placement
 ![Simple Room Placement](Assets/Gifs/simpleroom.gif)
 Place des pièces rectangulaires aléatoirement sans overlap.  
 **Utilité :** donjons simples, prototypage.  
@@ -101,7 +101,7 @@ Place des pièces rectangulaires aléatoirement sans overlap.
 
 ---
 
-## 🟧 2. BSP Dungeon
+##  2. BSP Dungeon
 ![BSP Dungeon](Assets/Gifs/BSP.gif)
 Division de la carte en zones via Binary Space Partitioning, placement de pièces et génération de couloirs.  
 **Utilité :** donjons structurés, équilibrés.  
@@ -109,7 +109,7 @@ Division de la carte en zones via Binary Space Partitioning, placement de pièce
 
 ---
 
-## 🟩 3. Cellular Automata
+##  3. Cellular Automata
 ![Cellular Automata](Assets/Gifs/Cellular%20Automata.gif)
 Automate cellulaire appliqué sur une carte aléatoire pour générer des formes organiques.  
 **Utilité :** grottes, cavernes.  
@@ -117,7 +117,7 @@ Automate cellulaire appliqué sur une carte aléatoire pour générer des formes
 
 ---
 
-## 🟫 4. Simplex Noise Generator
+##  4. Simplex Noise Generator
 ![Simplex Noise Generator](Assets/Gifs/SimplexNoise.gif)
 Génère des valeurs continues via Simplex Noise.  
 **Utilité :** terrains, biomes, heatmaps.  
@@ -125,7 +125,7 @@ Génère des valeurs continues via Simplex Noise.
 
 ---
 
-# 🚀 Installation
+#  Installation
 
 ```
 git clone https://github.com/Tim4270/ProceduralGenerationTools.git
@@ -135,5 +135,5 @@ Ouvrir dans Unity **2022.3+**
 
 ---
 
-# 📄 Licence
+#  Licence
 MIT License
