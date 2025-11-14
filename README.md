@@ -65,13 +65,13 @@ Components/ProceduralGeneration/NomdelaGénération/Script.cs
 
 EXEMPLE : 
 
-1. Crée un script dans :
+1. Creer un script dans :
 
 ```
 Components/ProceduralGeneration/Methods/
 ```
 
-2. Hérite de `ProceduralGenerationMethod` :
+2. Faite le hériter de `ProceduralGenerationMethod` :
 
 ```csharp
 [CreateAssetMenu(menuName = "Procedural Generation/MyCustomGenerationMethod")]
@@ -88,7 +88,7 @@ public class MyCustomGenerationMethod : ProceduralGenerationMethod
 }
 ```
 
-3. Crée un asset dans Unity :
+3. Creer un asset dans Unity :
 Create → Procedural Generation → MyCustomGenerationMethod
 
 4. Dans la scène, ajouter/choisir un ProceduralGridGenerator et sélectionner votre méthode.
@@ -139,7 +139,7 @@ Génère un noise grace à la lib "FastNoiseLit".
 git clone https://github.com/Tim4270/ProceduralGenerationTools.git
 ```
 
-Ouvrir dans Unity **2022.3+**
+Ouvrir dans Unity **2022.3+** et amusez vous à tester les différents générations procédurales !
 
 ---
 
