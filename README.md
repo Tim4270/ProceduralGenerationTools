@@ -1,7 +1,8 @@
 # ProceduralGenerationTools
 
 Outils modulaires pour créer des systèmes de **génération procédurale** dans Unity.  
-Le projet repose sur une architecture flexible basée sur une **Grid**, des **Cell**, et des **méthodes de génération** interchangeables.  
+Le projet repose sur une architecture flexible basée sur une **Grid**, des **Cell**, et des **méthodes de génération** interchangeables. 
+Ces outils ont été réalises durant mon cursus au Gaming Campus à Lyon. 
 Tous les algorithmes sont situés dans :
 
 ```
