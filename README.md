@@ -96,7 +96,7 @@ public class MyCustomMethod : ProceduralGenerationMethod
 ##  1. Simple Room Placement
 ![Simple Room Placement](Assets/Gifs/simpleroom.gif)
 
-Place des pièces rectangulaires aléatoirement sans overlap.  
+Place des pièces rectangulaires aléatoirement sans chevauchement.  
 **Utilité :** donjons simples, prototypage.  
 **Limites :** pas de couloirs, layout très carré.
 
@@ -105,7 +105,7 @@ Place des pièces rectangulaires aléatoirement sans overlap.
 ##  2. BSP Dungeon
 ![BSP Dungeon](Assets/Gifs/BSP.gif)
 
-Division de la carte en zones via Binary Space Partitioning, placement de pièces et génération de couloirs.  
+La grille est split de facon récursive sur les enfants crées par ces meme splits puis les connecte avec une liste de room placés  
 **Utilité :** donjons structurés, équilibrés.  
 **Limites :** parfois trop régulier.
 
@@ -114,7 +114,7 @@ Division de la carte en zones via Binary Space Partitioning, placement de pièce
 ##  3. Cellular Automata
 ![Cellular Automata](Assets/Gifs/Cellular%20Automata.gif)
 
-Automate cellulaire appliqué sur une carte aléatoire pour générer des formes organiques.  
+Basé sur le jeu de la vie, on place des tiles avec une noise density défini dans l'inspector.  
 **Utilité :** grottes, cavernes.  
 **Limites :** zones parfois isolées.
 
@@ -123,7 +123,7 @@ Automate cellulaire appliqué sur une carte aléatoire pour générer des formes
 ##  4. Simplex Noise Generator
 ![Simplex Noise Generator](Assets/Gifs/SimplexNoise.gif)
 
-Génère des valeurs continues via Simplex Noise.  
+Génère un noise grace à la lib "FastNoiseLit".  
 **Utilité :** terrains, biomes, heatmaps.  
 **Limites :** ne produit pas de structures.
 
