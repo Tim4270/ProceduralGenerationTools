@@ -73,9 +73,6 @@ public class BSP : ProceduralGenerationMethod
             for (int attempt = 0; attempt < maxAttemptsPlacements; attempt++)
             {
 
-
-
-
                 // Calculer largeur possible pour la room
                 int maxRoomWidth = area.width - 2 * roomPadding;
                 int roomWidth;
@@ -135,7 +132,11 @@ public class BSP : ProceduralGenerationMethod
                 PlaceRoom(roomRect);
                 roomPlaced = true;
 
-                Debug.Log($"Placed room at {roomRect}");
+                // Collecter le centre de la room (liste de rooms placées)
+                var center = GetRoomCenter(roomRect);
+                _roomCenters.Add(center);
+
+                Debug.Log($"Placed room at {roomRect} (center {center})");
 
                 // Optionnel : petit délai pour visualiser la génération étape par étape
                 await UniTask.Delay(GridGenerator.StepDelay, cancellationToken: cancellationToken);
@@ -150,7 +151,8 @@ public class BSP : ProceduralGenerationMethod
         
 
         // Connecter les rooms entre elles via les corridors
-        ConnectAndPropagate(root);
+        // Remplace la connexion basée sur l'arbre par une connexion séquentielle suivant l'ordre de placement.
+        ConnectRoomsSequentially(_roomCenters, 1);
 
         // Optionnel : petit délai pour visualiser la génération étape par étape
         await UniTask.Delay(GridGenerator.StepDelay, cancellationToken: cancellationToken);
@@ -318,6 +320,24 @@ public class BSP : ProceduralGenerationMethod
         if (bCenters.Count > 0) return bCenters[0];
 
         return null;
+    }
+
+    // Nouvelle méthode : connecte les rooms dans l'ordre donné (liste de centres)
+    private void ConnectRoomsSequentially(List<Vector2Int> centers, int corridorWidth = 1)
+    {
+        if (centers == null || centers.Count < 2)
+        {
+            Debug.Log("ConnectRoomsSequentially: pas assez de rooms à connecter.");
+            return;
+        }
+
+        for (int i = 1; i < centers.Count; i++)
+        {
+            var a = centers[i - 1];
+            var b = centers[i];
+            PlaceCorridor(a, b, corridorWidth);
+            Debug.Log($"Connected sequentially {a} -> {b}");
+        }
     }
 }
 
