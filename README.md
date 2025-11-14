@@ -53,15 +53,17 @@ public abstract class ProceduralGenerationMethod : ScriptableObject
 }
 ```
 
-Chaque algorithme est implémenté dans un fichier séparé situé dans :
+Chaque algorithme est implémenté dans un dossier correspondant à leur génération procédurale :
 
 ```
-Components/ProceduralGeneration/Methods/
+Components/ProceduralGeneration/NomdelaGénération/Script.cs
 ```
 
 ---
 
 #  Ajouter un nouvel algorithme
+
+EXEMPLE : 
 
 1. Crée un script dans :
 
@@ -72,8 +74,8 @@ Components/ProceduralGeneration/Methods/
 2. Hérite de `ProceduralGenerationMethod` :
 
 ```csharp
-[CreateAssetMenu(menuName = "Procedural Generation/MyCustomMethod")]
-public class MyCustomMethod : ProceduralGenerationMethod
+[CreateAssetMenu(menuName = "Procedural Generation/MyCustomGenerationMethod")]
+public class MyCustomGenerationMethod : ProceduralGenerationMethod
 {
     public override async UniTask Generate(Grid grid, CancellationToken token)
     {
@@ -87,7 +89,7 @@ public class MyCustomMethod : ProceduralGenerationMethod
 ```
 
 3. Crée un asset dans Unity :
-Create → Procedural Generation → MyCustomMethod
+Create → Procedural Generation → MyCustomGenerationMethod
 
 4. Dans la scène, ajouter/choisir un ProceduralGridGenerator et sélectionner votre méthode.
 
